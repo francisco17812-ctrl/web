@@ -1,0 +1,15 @@
+{
+  "name": "gestaopro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicação GestãoPro com API Node.js e Supabase",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0"
+  }
+}

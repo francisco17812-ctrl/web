@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>GestãoPro — Sistema Empresarial</title>
+<style>
+/* ===== Reset e variáveis ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--sf:#111;--sf2:#1a1a1a;--bd:#2a2a2a;--tx:#f4f4f5;--mu:#9ca3af;--g1:#22c55e;--g2:#16a34a;color-scheme:dark}
+html,body{min-height:100%}
+body{background:#000;color:var(--tx);font:15px/1.5 Inter,system-ui,"Segoe UI",sans-serif}
+button,input,select{font:inherit;color:inherit}
+h1{font-size:28px;letter-spacing:-.5px}h2{font-size:20px}
+.mu{color:var(--mu);font-size:14px}.c{text-align:center}
+/* ===== Botões verdes com salto ===== */
+.btn{background:linear-gradient(135deg,#22c55e,#16a34a);color:#04130a;border:0;border-radius:8px;padding:10px 20px;font-weight:600;cursor:pointer;transition:all .25s ease;box-shadow:0 2px 8px rgba(34,197,94,.2)}
+.btn:hover{background:linear-gradient(135deg,#4ade80,#22c55e);transform:translateY(-3px) scale(1.03);box-shadow:0 6px 20px rgba(34,197,94,.4)}
+.btn:active{transform:scale(.97)}
+.btn.sm{padding:6px 12px;font-size:13px}
+/* ===== Inputs ===== */
+.in{width:100%;background:var(--sf2);border:1px solid #333;border-radius:8px;padding:10px 12px;outline:0;transition:all .2s}
+.in:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(34,197,94,.22)}
+.fl{display:block;margin-bottom:16px;font-size:14px;color:var(--mu)}
+.fl .in{margin-top:4px;color:var(--tx)}
+.err{color:#f87171;font-size:13px;min-height:20px;margin-bottom:8px}
+/* ===== Auth ===== */
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;animation:fade .4s}
+.auth-card{width:100%;max-width:400px;padding:32px}
+.auth-card .btn{width:100%;margin-bottom:16px}
+.auth-card h1{margin-bottom:4px}.auth-card p.mu{margin-bottom:24px}
+/* ===== Layout, sidebar, header ===== */
+.shell{display:flex;min-height:100vh}
+.side{width:232px;background:#0f0f0f;border-right:1px solid #222;padding:16px 0;flex-shrink:0}
+.logo{padding:8px 20px 20px;font-weight:700;font-size:18px;color:var(--g1)}
+.nav{display:block;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;padding:12px 20px;cursor:pointer;color:var(--mu);transition:all .2s}
+.nav:hover{color:#fff;background:#151515}
+.nav.on{border-left-color:var(--g1);color:#fff;background:#10201a}
+.main{flex:1;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid #222}
+.top .who{display:flex;align-items:center;gap:12px}
+.page{padding:24px;animation:fade .3s ease}
+.bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.bar .in{max-width:280px}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* ===== Cards, KPIs, tabelas ===== */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:16px}
+.card{background:var(--sf);border:1px solid #222;border-radius:12px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:all .25s ease}
+.card:hover{transform:translateY(-3px);border-color:#14532d;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.kpi b{display:block;font-size:28px;margin-top:4px}
+.card ul{list-style:none;margin-top:8px}.card li{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1d1d1d}
+.wrap{overflow-x:auto;padding:0}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 16px;text-align:left;border-bottom:1px solid #222;white-space:nowrap}
+th{color:var(--mu);font-weight:500;font-size:13px}
+tbody tr{transition:background .2s}tbody tr:hover{background:#151515}
+td.act{display:flex;gap:8px}
+.badge{padding:2px 10px;border-radius:99px;font-size:12px;background:#1f2937;color:#d1d5db}
+.badge.g{background:#052e16;color:#4ade80}.badge.y{background:#3a2e05;color:#facc15}.badge.r{background:#3b0d0d;color:#f87171}
+.empty{padding:32px;text-align:center;color:var(--mu)}
+canvas{display:block;width:100%}
+.tot{margin-bottom:12px;color:var(--mu)}.tot b{color:var(--g1)}
+/* ===== Modais e toasts ===== */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;animation:fade .2s}
+.md{background:#111;border:1px solid var(--bd);border-radius:12px;padding:24px;width:100%;max-width:460px;max-height:90vh;overflow:auto;animation:pop .25s ease;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.md h2{margin-bottom:16px}.row{display:flex;gap:12px;justify-content:flex-end;margin-top:8px}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+#toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:99}
+.toast{background:#111;border:1px solid var(--g2);border-left:4px solid var(--g1);padding:12px 16px;border-radius:8px;animation:pop .25s;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+.toast.e{border-color:#7f1d1d;border-left-color:#ef4444}
+/* ===== Responsivo ===== */
+@media(max-width:800px){
+ .shell{flex-direction:column}
+ .side{width:100%;display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid #222;padding:0}
+ .logo{display:none}
+ .nav{width:auto;border-left:0;border-bottom:3px solid transparent;white-space:nowrap}
+ .nav.on{border-bottom-color:var(--g1)}
+ .page,.top{padding:16px}
+ .bar .in{max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toasts"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(() => {
+'use strict';
+
+/* ===== Utilitários ===== */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const brl = n => Number(n || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const fmtData = d => d ? d.split('-').reverse().join('/') : '—';
+
+/* Configure com a URL do projeto e a chave publishable (anon), nunca com service_role. */
+const SUPABASE_URL = 'https://rsfmgnoiupsjqzjdpuwq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Bjs9hQo-ma_qr1cQQTfSKg_O8jbwm9Y';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function api(path, options = {}) {
+  const {data: {session}} = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+  const response = await fetch(`/api/${path}`, {
+    ...options,
+    headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}`, ...(options.headers || {})}
+  });
+  if (response.status === 204) return null;
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error || 'Não foi possível concluir a operação.');
+  return body;
+}
+let currentUser = null;
+let currentUsername = '';
+const cache = {clientes: [], vendas: [], tarefas: []};
+const dbError = e => { console.error(e); return e?.message || 'Não foi possível conectar ao Supabase.'; };
+const validUsername = username => /^[a-z0-9_]{3,30}$/.test(username);
+
+/* ===== AuthModule: Supabase Auth ===== */
+const AuthModule = {
+  current() { return currentUser; },
+  username() { return currentUsername; },
+  authError(error) {
+    const message = String(error?.message || '').toLowerCase();
+    if (message.includes('invalid login credentials') || message.includes('invalid credentials')) return 'Nome de usuário ou senha incorretos. Confira os dados e tente novamente.';
+    if (message.includes('email not confirmed')) return 'Este e-mail ainda não foi confirmado. Confira sua caixa de entrada.';
+    if (message.includes('already confirmed')) return 'Este e-mail já foi confirmado. Tente entrar com sua senha.';
+    if (message.includes('already registered') || message.includes('user already registered')) return 'Este e-mail já tem uma conta. Tente entrar com sua senha.';
+    if (message.includes('database error saving new user')) return 'Não foi possível criar a conta. Verifique se o nome de usuário está disponível e tente novamente.';
+    if (message.includes('password should be at least')) return 'A senha precisa ter ao menos 6 caracteres.';
+    if (message.includes('rate limit')) return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.';
+    return dbError(error);
+  },
+  async loadUsername() {
+    if (!currentUser) { currentUsername = ''; return; }
+    const {data, error} = await supabase.from('user_profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+    if (error) throw error;
+    currentUsername = data?.username || '';
+  },
+  async register({nome, username, email, senha, conf}) {
+    nome = nome.trim(); username = username.trim().toLowerCase(); email = email.trim().toLowerCase();
+    if (nome.length < 2) return {erro: 'Informe seu nome.'};
+    if (!validUsername(username)) return {erro: 'O nome de usuário deve ter de 3 a 30 caracteres: letras minúsculas, números ou _.'};
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return {erro: 'Informe um e-mail válido.'};
+    if (senha.length < 6) return {erro: 'A senha precisa ter ao menos 6 caracteres.'};
+    if (senha !== conf) return {erro: 'A confirmação não é igual à senha.'};
+    const {data, error} = await supabase.auth.signUp({email, password: senha, options: {data: {nome, username}}});
+    if (error) return {erro: this.authError(error)};
+    currentUser = data.user && data.session ? data.user : null;
+    currentUsername = username;
+    return {ok: true, precisaConfirmar: !data.session};
+  },
+  async login(identifier, senha) {
+    identifier = identifier.trim();
+    if (identifier.includes('@')) {
+      const {data, error} = await supabase.auth.signInWithPassword({email: identifier.toLowerCase(), password: senha});
+      if (error) return {erro: this.authError(error)};
+      currentUser = data.user;
+    } else {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: identifier.toLowerCase(), password: senha})
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) return {erro: result.error || 'Não foi possível entrar. Tente novamente.'};
+      const {data, error} = await supabase.auth.setSession(result.session);
+      if (error) return {erro: this.authError(error)};
+      currentUser = data.user;
+    }
+    await this.loadUsername();
+    return {ok: true};
+  },
+  async logout() { await supabase.auth.signOut(); currentUser = null; currentUsername = ''; },
+  async rename(nome) {
+    const {data, error} = await supabase.auth.updateUser({data: {nome}});
+    if (error) throw error;
+    currentUser = data.user;
+  },
+  async setUsername(username) {
+    username = username.trim().toLowerCase();
+    if (!validUsername(username)) throw new Error('O nome de usuário deve ter de 3 a 30 caracteres: letras minúsculas, números ou _.');
+    const {data, error} = await supabase.from('user_profiles')
+      .upsert({user_id: currentUser.id, username}, {onConflict: 'user_id'})
+      .select('username').single();
+    if (error) throw error;
+    currentUsername = data.username;
+  }
+};
+
+/* ===== CRUD remoto, com isolamento aplicado pelas políticas RLS ===== */
+const crud = key => {
+  const table = key;
+  const m = {
+    list: () => cache[key],
+    get: id => m.list().find(x => x.id === id),
+    async load() { cache[key] = await api(table); },
+    async add(o) { await api(table, {method:'POST', body:JSON.stringify(o)}); await m.load(); },
+    async update(id, o) { await api(`${table}/${encodeURIComponent(id)}`, {method:'PATCH', body:JSON.stringify(o)}); await m.load(); },
+    async remove(id) { await api(`${table}/${encodeURIComponent(id)}`, {method:'DELETE'}); await m.load(); },
+    async clear() { await api(table, {method:'DELETE'}); cache[key] = []; }
+  };
+  return m;
+};
+const ClientesModule = crud('clientes');
+const VendasModule = crud('vendas');
+const TarefasModule = crud('tarefas');
+const MODS = {clientes: ClientesModule, vendas: VendasModule, tarefas: TarefasModule};
+
+/* ===== Configuração dos formulários e tabelas ===== */
+const CFG = {
+  clientes: {t: 'Clientes', s: 'cliente', f: [
+    {k:'nome', l:'Nome', r:1}, {k:'email', l:'E-mail', type:'email'}, {k:'telefone', l:'Telefone'},
+    {k:'empresa', l:'Empresa'}, {k:'status', l:'Status', o:['lead','ativo','inativo']}]},
+  vendas: {t: 'Vendas', s: 'venda', f: [
+    {k:'clienteId', l:'Cliente', r:1}, {k:'produto', l:'Produto', r:1}, {k:'valor', l:'Valor (R$)', type:'number', r:1},
+    {k:'data', l:'Data', type:'date', r:1}, {k:'status', l:'Status', o:['pendente','paga','cancelada']}]},
+  tarefas: {t: 'Tarefas', s: 'tarefa', f: [
+    {k:'titulo', l:'Título', r:1}, {k:'status', l:'Status', o:['pendente','em andamento','concluída']},
+    {k:'prioridade', l:'Prioridade', o:['baixa','média','alta']}, {k:'prazo', l:'Prazo', type:'date'}]}
+};
+const NAV = [['dashboard','Dashboard'],['clientes','Clientes'],['vendas','Vendas'],['tarefas','Tarefas'],['relatorios','Relatórios'],['config','Configurações']];
+const TONE = {ativo:'g', paga:'g', 'concluída':'g', lead:'y', pendente:'y', 'em andamento':'y', inativo:'r', cancelada:'r', alta:'r'};
+const opts = f => f.k === 'clienteId' ? ClientesModule.list().map(c => [c.id, c.nome]) : f.o.map(x => [x, x]);
+const cnt = (l, k, v) => l.filter(x => x[k] === v).length;
+const soma = (l, s) => l.filter(v => !s || v.status === s).reduce((a, v) => a + (+v.valor || 0), 0);
+
+/* ===== UIModule ===== */
+const UIModule = {
+  filtro: '', pendente: null,
+  toast(msg, erro) {
+    const t = document.createElement('div');
+    t.className = 'toast' + (erro ? ' e' : ''); t.textContent = msg;
+    $('#toasts').appendChild(t); setTimeout(() => t.remove(), 3000);
+  },
+  campo: (id, l, type, reg) => `<label class="fl">${l}<input class="in" id="a-${id}" type="${type}" autocomplete="${type === 'password' ? (reg ? 'new-password' : 'current-password') : type === 'email' ? 'email' : id === 'username' ? 'username' : 'name'}" ${type === 'email' ? 'inputmode="email"' : ''} required></label>`,
+  auth(reg) {
+    return `<div class="auth"><form class="card auth-card" id="${reg ? 'f-reg' : 'f-login'}" novalidate>
+      <h1>GestãoPro</h1><p class="mu">${reg ? 'Crie sua conta para começar' : 'Entre para gerenciar seu negócio'}</p>
+      ${reg ? this.campo('nome', 'Nome', 'text', true) : ''}
+      ${reg ? this.campo('username', 'Nome de usuário', 'text', true) : this.campo('username', 'Nome de usuário', 'text', false)}
+      ${reg ? this.campo('email', 'E-mail para confirmação', 'email', true) : '<p class="mu">Contas antigas podem usar o e-mail até definir um nome de usuário no perfil.</p>'}
+      ${this.campo('senha', 'Senha', 'password', reg)}
+      ${reg ? this.campo('conf', 'Confirmar senha', 'password', true) : ''}
+      <div class="err" id="err" role="alert" aria-live="polite"></div>
+      <button class="btn" type="submit" id="btn-submit">${reg ? 'Criar conta' : 'Entrar'}</button>
+      <p class="mu c">${reg ? 'Já tem conta?' : 'Ainda não tem conta?'}</p><br>
+      <button class="btn" type="button" id="btn-alt" data-act="go" data-v="${reg ? 'login' : 'register'}">${reg ? 'Voltar ao login' : 'Criar conta'}</button>
+    </form></div>`;
+  },
+  shell(view, body) {
+    const u = AuthModule.current();
+    return `<div class="shell"><aside class="side"><div class="logo">GestãoPro</div>
+      ${NAV.map(([v, l]) => `<button class="nav ${v === view ? 'on' : ''}" data-act="go" data-v="${v}" id="nav-${v}">${l}</button>`).join('')}</aside>
+      <div class="main"><header class="top"><h2>${NAV.find(n => n[0] === view)[1]}</h2>
+      <div class="who"><span class="mu">Olá, <b style="color:#fff">${esc(u.user_metadata?.nome || AuthModule.username() || 'Usuário')}</b></span><button class="btn sm" data-act="logout" id="btn-logout">Sair</button></div></header>
+      <section class="page">${body}</section></div></div>`;
+  },
+  dashboard() {
+    const cl = ClientesModule.list(), vd = VendasModule.list(), tf = TarefasModule.list();
+    const kpi = (l, v) => `<div class="card kpi"><span class="mu">${l}</span><b>${v}</b></div>`;
+    return `<div class="grid">${kpi('Total de clientes', cl.length)}${kpi('Vendas registradas', vd.length)}
+      ${kpi('Receita (vendas pagas)', brl(soma(vd, 'paga')))}${kpi('Tarefas pendentes', tf.filter(t => t.status !== 'concluída').length)}</div>
+      <div class="card"><h2 style="margin-bottom:12px">Evolução de vendas — últimos 6 meses</h2><canvas id="chart"></canvas></div>`;
+  },
+  chart() {
+    const c = $('#chart'); if (!c) return;
+    const w = c.width = c.parentElement.clientWidth - 32, h = c.height = 220, x = c.getContext('2d');
+    const hoje = new Date(), ms = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+      ms.push({k: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), l: d.toLocaleDateString('pt-BR', {month:'short'}), v: 0});
+    }
+    VendasModule.list().filter(v => v.status !== 'cancelada').forEach(v => { const m = ms.find(a => a.k === (v.data || '').slice(0, 7)); if (m) m.v += +v.valor || 0; });
+    const max = Math.max(...ms.map(m => m.v), 1), pad = 32, bw = (w - pad * 2) / ms.length;
+    x.font = '12px system-ui'; x.textAlign = 'center';
+    x.strokeStyle = '#222'; x.beginPath(); x.moveTo(pad, h - pad); x.lineTo(w - pad, h - pad); x.stroke();
+    ms.forEach((m, i) => {
+      const bh = (h - pad * 2) * m.v / max, px = pad + i * bw + bw * .2, py = h - pad - bh;
+      const g = x.createLinearGradient(0, py, 0, h - pad); g.addColorStop(0, '#22c55e'); g.addColorStop(1, '#14532d');
+      x.fillStyle = g; x.fillRect(px, py, bw * .6, bh);
+      x.fillStyle = '#9ca3af'; x.fillText(m.l, px + bw * .3, h - 10);
+      if (m.v) x.fillText(m.v.toLocaleString('pt-BR', {notation:'compact'}), px + bw * .3, py - 6);
+    });
+  },
+  cell(f, r) {
+    const v = r[f.k];
+    if (f.k === 'clienteId') return esc((ClientesModule.get(v) || {}).nome || '—');
+    if (f.type === 'number') return brl(v);
+    if (f.type === 'date') return fmtData(v);
+    if (f.o) return `<span class="badge ${TONE[v] || ''}">${esc(v)}</span>`;
+    return esc(v || '—');
+  },
+  lista(m) {
+    const c = CFG[m], l = MODS[m].list();
+    const tot = m === 'vendas' ? `<p class="tot">${l.length} venda(s) — total geral <b>${brl(soma(l))}</b> · pagas <b>${brl(soma(l, 'paga'))}</b> · pendentes <b>${brl(soma(l, 'pendente'))}</b></p>` : '';
+    const rows = l.map(r => `<tr data-s="${esc(c.f.map(f => f.k === 'clienteId' ? (ClientesModule.get(r[f.k]) || {}).nome : r[f.k]).join(' ').toLowerCase())}">
+      ${c.f.map(f => `<td>${this.cell(f, r)}</td>`).join('')}
+      <td class="act">${m === 'tarefas' ? `<button class="btn sm" data-act="next" data-id="${r.id}">Avançar status</button>` : ''}
+      <button class="btn sm" data-act="edit" data-m="${m}" data-id="${r.id}">Editar</button>
+      <button class="btn sm" data-act="del" data-m="${m}" data-id="${r.id}">Excluir</button></td></tr>`).join('');
+    return `<div class="bar"><input class="in" id="q" placeholder="Buscar ${c.t.toLowerCase()}…" value="${esc(this.filtro)}">
+      <button class="btn" data-act="novo" data-m="${m}" id="btn-novo-${m}">Novo ${c.s}</button></div>${tot}
+      <div class="card wrap">${l.length ? `<table><thead><tr>${c.f.map(f => `<th>${f.l}</th>`).join('')}<th>Ações</th></tr></thead><tbody id="tb">${rows}</tbody></table>`
+      : `<div class="empty">Nenhum ${c.s} cadastrado. Clique em “Novo ${c.s}” para começar.</div>`}</div>`;
+  },
+  relatorios() {
+    const cl = ClientesModule.list(), vd = VendasModule.list(), tf = TarefasModule.list();
+    const li = a => `<ul>${a.map(([k, v]) => `<li><span class="mu">${k}</span><b>${v}</b></li>`).join('')}</ul>`;
+    return `<div class="grid">
+      <div class="card"><h2>Clientes</h2>${li([['Total', cl.length], ['Leads', cnt(cl,'status','lead')], ['Ativos', cnt(cl,'status','ativo')], ['Inativos', cnt(cl,'status','inativo')]])}</div>
+      <div class="card"><h2>Vendas</h2>${li([['Total geral', brl(soma(vd))], ['Recebido', brl(soma(vd,'paga'))], ['Pendente', brl(soma(vd,'pendente'))], ['Canceladas', cnt(vd,'status','cancelada')]])}</div>
+      <div class="card"><h2>Tarefas</h2>${li([['Pendentes', cnt(tf,'status','pendente')], ['Em andamento', cnt(tf,'status','em andamento')], ['Concluídas', cnt(tf,'status','concluída')], ['Alta prioridade em aberto', tf.filter(t => t.prioridade === 'alta' && t.status !== 'concluída').length]])}</div></div>
+      <div class="card"><h2 style="margin-bottom:12px">Exportar dados</h2><div class="row" style="justify-content:flex-start;flex-wrap:wrap">
+      <button class="btn" data-act="json" id="btn-json">Tudo (JSON)</button>
+      ${Object.keys(CFG).map(m => `<button class="btn" data-act="csv" data-m="${m}">${CFG[m].t} (CSV)</button>`).join('')}</div></div>`;
+  },
+  config() {
+    const u = AuthModule.current();
+    return `<div class="card" style="max-width:480px"><form id="f-cfg"><h2 style="margin-bottom:16px">Perfil</h2>
+      <label class="fl">Nome<input class="in" id="c-nome" value="${esc(u.user_metadata?.nome || '')}"></label>
+      <label class="fl">Nome de usuário<input class="in" id="c-username" value="${esc(AuthModule.username())}" minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+" required></label>
+      <p class="mu" style="margin-bottom:16px">Use de 3 a 30 caracteres: letras, números ou _. O nome de usuário deve ser único.</p>
+      <button class="btn" type="submit" id="btn-salvar">Salvar perfil</button></form></div><br>
+      <div class="card" style="max-width:480px"><h2 style="margin-bottom:8px">Zona de risco</h2>
+      <p class="mu" style="margin-bottom:16px">Apaga todos os clientes, vendas e tarefas da sua conta.</p>
+      <button class="btn" data-act="limpar" id="btn-limpar">Limpar dados</button></div>`;
+  },
+  modal(m, id) {
+    const c = CFG[m], r = id ? MODS[m].get(id) : {};
+    const f = c.f.map(x => {
+      const v = r[x.k] ?? '';
+      const inp = x.k === 'clienteId' || x.o
+        ? `<select class="in" name="${x.k}">${x.k === 'clienteId' ? '<option value="">Selecione…</option>' : ''}${opts(x).map(([a, b]) => `<option value="${esc(a)}" ${a === v ? 'selected' : ''}>${esc(b)}</option>`).join('')}</select>`
+        : `<input class="in" name="${x.k}" type="${x.type || 'text'}" ${x.type === 'number' ? 'step="0.01" min="0"' : ''} value="${esc(v)}">`;
+      return `<label class="fl">${x.l}${x.r ? ' *' : ''}${inp}</label>`;
+    }).join('');
+    $('#modal').innerHTML = `<div class="ov" id="ov"><form class="md" id="f-mod" data-m="${m}" data-id="${id || ''}" novalidate>
+      <h2>${id ? 'Editar' : 'Novo'} ${c.s}</h2>${f}<div class="err" id="err" role="alert" aria-live="polite"></div>
+      <div class="row"><button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn">Salvar</button></div></form></div>`;
+    const first = $('#f-mod .in'); if (first) first.focus();
+  },
+  confirmar(msg, ok, label = 'Excluir') {
+    this.pendente = ok;
+    $('#modal').innerHTML = `<div class="ov" id="ov"><div class="md"><h2>Confirmação</h2><p class="mu" style="margin-bottom:16px">${esc(msg)}</p>
+      <div class="row"><button class="btn" data-act="close">Cancelar</button><button class="btn" data-act="yes">${label}</button></div></div></div>`;
+  },
+  fechar() { $('#modal').innerHTML = ''; this.pendente = null; },
+  render() {
+    const v = Router.view, app = $('#app');
+    if (v === 'login' || v === 'register') { app.innerHTML = this.auth(v === 'register'); return; }
+    const body = v === 'dashboard' ? this.dashboard() : CFG[v] ? this.lista(v) : v === 'relatorios' ? this.relatorios() : this.config();
+    app.innerHTML = this.shell(v, body);
+    if (v === 'dashboard') this.chart();
+    if (this.filtro) this.filtrar();
+  },
+  filtrar() {
+    const q = this.filtro.toLowerCase();
+    document.querySelectorAll('#tb tr').forEach(tr => { tr.style.display = tr.dataset.s.includes(q) ? '' : 'none'; });
+  }
+};
+
+/* ===== Router: controla a tela visível ===== */
+const Router = {
+  view: 'login',
+  async go(v) {
+    if (!AuthModule.current() && v !== 'login' && v !== 'register') v = 'login';
+    if (AuthModule.current() && (v === 'login' || v === 'register')) v = 'dashboard';
+    this.view = v; UIModule.filtro = ''; UIModule.fechar();
+    if (AuthModule.current() && (v === 'dashboard' || CFG[v] || v === 'relatorios' || v === 'config')) {
+      try { await Promise.all(Object.values(MODS).map(m => m.load())); }
+      catch (e) { UIModule.render(); UIModule.toast(dbError(e), true); return; }
+    }
+    UIModule.render(); window.scrollTo(0, 0);
+  }
+};
+
+/* ===== Exportação ===== */
+const baixar = (nome, txt, tipo) => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], {type: tipo})); a.download = nome; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 500);
+};
+const toCsv = (rows, cols) => [cols.join(';'), ...rows.map(r => cols.map(c => '"' + String(r[c] ?? '').replace(/"/g, '""') + '"').join(';'))].join('\n');
+
+/* ===== Ações (delegação de eventos) ===== */
+const ACOES = {
+  go: t => Router.go(t.dataset.v),
+  logout: async () => { await AuthModule.logout(); Router.go('login'); UIModule.toast('Você saiu da conta.'); },
+  novo: t => {
+    if (t.dataset.m === 'vendas' && !ClientesModule.list().length) return UIModule.toast('Cadastre um cliente antes de criar uma venda.', true);
+    UIModule.modal(t.dataset.m);
+  },
+  edit: t => UIModule.modal(t.dataset.m, t.dataset.id),
+  del: t => UIModule.confirmar('Excluir este registro? Esta ação não pode ser desfeita.', async () => {
+    try { await MODS[t.dataset.m].remove(t.dataset.id); UIModule.fechar(); UIModule.render(); UIModule.toast('Registro excluído.'); } catch (e) { UIModule.toast(dbError(e), true); }
+  }),
+  next: async t => {
+    const ord = CFG.tarefas.f[1].o, r = TarefasModule.get(t.dataset.id);
+    try { await TarefasModule.update(r.id, {status: ord[(ord.indexOf(r.status) + 1) % ord.length]}); UIModule.render(); UIModule.toast('Status atualizado.'); } catch (e) { UIModule.toast(dbError(e), true); }
+  },
+  close: () => UIModule.fechar(),
+  yes: () => { const f = UIModule.pendente; if (f) f(); },
+  json: () => { baixar('gestaopro-dados.json', JSON.stringify({clientes: ClientesModule.list(), vendas: VendasModule.list(), tarefas: TarefasModule.list()}, null, 2), 'application/json'); UIModule.toast('Arquivo JSON exportado.'); },
+  csv: t => {
+    const m = t.dataset.m; let rows = MODS[m].list(), cols = CFG[m].f.map(f => f.k);
+    if (m === 'vendas') rows = rows.map(v => ({...v, clienteId: (ClientesModule.get(v.clienteId) || {}).nome || ''}));
+    baixar(m + '.csv', '\ufeff' + toCsv(rows, cols), 'text/csv;charset=utf-8'); UIModule.toast('Arquivo CSV exportado.');
+  },
+  limpar: () => UIModule.confirmar('Apagar todos os clientes, vendas e tarefas?', async () => {
+    try { await VendasModule.clear(); await TarefasModule.clear(); await ClientesModule.clear(); UIModule.fechar(); UIModule.render(); UIModule.toast('Dados apagados.'); } catch (e) { UIModule.toast(dbError(e), true); }
+  }, 'Apagar tudo')
+};
+
+const SUBMIT = {
+  async 'f-login'() {
+    const r = await AuthModule.login($('#a-username').value, $('#a-senha').value);
+    if (r.erro) return ($('#err').textContent = r.erro);
+    Router.go('dashboard'); UIModule.toast('Bem-vindo de volta!');
+  },
+  async 'f-reg'() {
+    const r = await AuthModule.register({nome: $('#a-nome').value, username: $('#a-username').value, email: $('#a-email').value, senha: $('#a-senha').value, conf: $('#a-conf').value});
+    if (r.erro) return ($('#err').textContent = r.erro);
+    if (AuthModule.current()) { Router.go('dashboard'); UIModule.toast('Conta criada!'); }
+    else { Router.go('login'); UIModule.toast('Conta criada! Verifique seu e-mail para confirmar o cadastro.'); }
+  },
+  async 'f-mod'(form) {
+    const m = form.dataset.m, id = form.dataset.id, d = {};
+    CFG[m].f.forEach(f => { d[f.k] = form.elements[f.k].value.trim(); });
+    const falta = CFG[m].f.find(f => f.r && !d[f.k]);
+    if (falta) return ($('#err').textContent = 'Preencha o campo: ' + falta.l + '.');
+    if (d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return ($('#err').textContent = 'Informe um e-mail válido.');
+    if (m === 'vendas') d.valor = Number(d.valor);
+    if (m === 'vendas' && !(d.valor >= 0)) return ($('#err').textContent = 'Informe um valor válido.');
+    try { if (id) await MODS[m].update(id, d); else await MODS[m].add(d);
+      UIModule.fechar(); UIModule.render(); UIModule.toast(id ? 'Alterações salvas.' : 'Registro criado.');
+    } catch (e) { $('#err').textContent = dbError(e); }
+  },
+  async 'f-cfg'() {
+    const n = $('#c-nome').value.trim();
+    if (n.length < 2) return UIModule.toast('Informe um nome válido.', true);
+    try { await AuthModule.setUsername($('#c-username').value); await AuthModule.rename(n); UIModule.render(); UIModule.toast('Perfil atualizado.'); } catch (e) { UIModule.toast(dbError(e), true); }
+  }
+};
+
+/* ===== App: inicialização ===== */
+const App = {
+  init() {
+    document.addEventListener('click', e => {
+      const t = e.target.closest('[data-act]');
+      if (t) { Promise.resolve(ACOES[t.dataset.act](t)).catch(e => UIModule.toast(dbError(e), true)); return; }
+      if (e.target.id === 'ov') UIModule.fechar();
+    });
+    document.addEventListener('submit', e => {
+      e.preventDefault();
+      const fn = SUBMIT[e.target.id]; if (fn) Promise.resolve(fn(e.target)).catch(err => UIModule.toast(dbError(err), true));
+    });
+    document.addEventListener('input', e => { if (e.target.id === 'q') { UIModule.filtro = e.target.value; UIModule.filtrar(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') UIModule.fechar(); });
+    window.addEventListener('resize', () => { if (Router.view === 'dashboard') UIModule.chart(); });
+    supabase.auth.getSession().then(async ({data, error}) => {
+      if (error) UIModule.toast(dbError(error), true);
+      currentUser = data?.session?.user || null;
+      if (currentUser) {
+        try { await AuthModule.loadUsername(); } catch (e) { UIModule.toast(dbError(e), true); }
+      }
+      Router.go(currentUser ? 'dashboard' : 'login');
+    });
+  }
+};
+App.init();
+})();
+</script>
+</body>
+</html>
